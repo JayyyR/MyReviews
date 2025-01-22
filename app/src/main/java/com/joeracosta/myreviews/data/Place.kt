@@ -17,3 +17,10 @@ data class MapData (
     val lat: Double,
     val lng: Double
 )
+
+data class MapState(
+    val currentLocation: MapData?,
+    val positionToJumpTo: MapData?,
+    val reviewedPlaces: List<Place>
+)
+
