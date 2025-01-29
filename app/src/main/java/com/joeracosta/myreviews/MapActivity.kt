@@ -21,10 +21,13 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.joeracosta.myreviews.data.MapData
+import com.joeracosta.myreviews.data.Place
+import com.joeracosta.myreviews.data.Review
 import com.joeracosta.myreviews.logic.LastLocationGetter
 import com.joeracosta.myreviews.logic.LastLocationProviderActivityImpl
 import com.joeracosta.myreviews.logic.MapViewModel
 import com.joeracosta.myreviews.ui.theme.MyReviewsTheme
+import com.joeracosta.myreviews.ui.view.MapMarker
 import kotlinx.coroutines.launch
 
 class MapActivity : ComponentActivity() {
@@ -68,7 +71,7 @@ class MapActivity : ComponentActivity() {
                             LatLng(
                                 defaultPosition.lat,
                                 defaultPosition.lng
-                            ), 10f
+                            ), 14f
                         )
                     }
 
@@ -80,17 +83,35 @@ class MapActivity : ComponentActivity() {
                                 LatLng(
                                     positionToJumpTo.lat,
                                     positionToJumpTo.lng
-                                ), 10f
+                                ), 14f
                             )
                             mapViewModel.clearPositionToJumpTo()
                         }
                     }
 
+                    val testPlace = Place(
+                        id = "1",
+                        name = "Park West Tavern",
+                        review = Review (
+                            "This is review text",
+                            8.4F
+                        ),
+                        isFavorite = false,
+                        mapData = MapData (
+                            40.980407,
+                            -74.118161
+                        )
+
+                    )
 
                     GoogleMap(
                         modifier = Modifier.padding(innerPadding),
                         cameraPositionState = cameraPositionState
-                    )
+                    ) {
+                        MapMarker(testPlace) {
+                            //on click
+                        }
+                    }
                 }
             }
         }
