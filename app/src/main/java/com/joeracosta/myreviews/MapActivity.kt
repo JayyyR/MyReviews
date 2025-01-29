@@ -18,7 +18,9 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.joeracosta.myreviews.data.MapData
 import com.joeracosta.myreviews.data.Place
@@ -106,7 +108,10 @@ class MapActivity : ComponentActivity() {
 
                     GoogleMap(
                         modifier = Modifier.padding(innerPadding),
-                        cameraPositionState = cameraPositionState
+                        cameraPositionState = cameraPositionState,
+                        properties = MapProperties(
+                            mapStyleOptions = MapStyleOptions.loadRawResourceStyle(baseContext, R.raw.empty_map_style)
+                        )
                     ) {
                         MapMarker(testPlace) {
                             //on click
