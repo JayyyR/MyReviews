@@ -29,6 +29,8 @@ import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
 import com.joeracosta.myreviews.data.Place
 import com.joeracosta.myreviews.ui.theme.Amber
+import com.joeracosta.myreviews.ui.theme.DeepRed
+import com.joeracosta.myreviews.ui.theme.ForestGreen
 
 @Composable
 fun MapMarker(
@@ -57,8 +59,8 @@ fun MapMarker(
                     shape = shape
                 )
                 .clip(shape)
-                .background(Amber)
-                .padding(3.dp),
+                .background(if (place.isFavorite) DeepRed else ForestGreen)
+                .padding(5.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
