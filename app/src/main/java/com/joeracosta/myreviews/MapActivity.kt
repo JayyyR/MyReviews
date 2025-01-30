@@ -174,6 +174,9 @@ class MapActivity : ComponentActivity() {
                         if (currentlyOpenedPlace != null) {
                             PlaceSheet(
                                 place = currentlyOpenedPlace,
+                                onJumpToGoogleMapsClicked = {
+                                    //todo
+                                },
                                 onEditClicked = {
                                     //todo
                                 }

@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">MyReviews</string>
     <string name="edit_button">EDIT</string>
+    <string name="rating_out_of_10">%.1f/10</string>
+    <string name="favorite_label">Favorite</string>
+    <string name="jump_to_google_maps">Open in Google Maps</string>
 </resources>

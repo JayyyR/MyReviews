@@ -3,7 +3,7 @@ package com.joeracosta.myreviews.data
 data class Place (
     val id: String,
     val name: String,
-    val review: Review,
+    val review: Review?,
     val isFavorite: Boolean,
     val mapData: MapData
 )

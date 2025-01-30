@@ -25,7 +25,7 @@ class MapViewModel : ViewModel() {
             id = "1",
             name = "Park West Tavern",
             review = Review(
-                "This is review text",
+                "This is review text for park west tavern. Their Guinness is not consistent",
                 8.4F
             ),
             isFavorite = false,
@@ -39,7 +39,7 @@ class MapViewModel : ViewModel() {
             id = "2",
             name = "Daily Treat",
             review = Review(
-                "This is review text",
+                "This is review text for Daily Treat aka Tasty Treat",
                 9F
             ),
             isFavorite = true,

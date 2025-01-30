@@ -3,10 +3,17 @@ package com.joeracosta.myreviews.ui.view
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,13 +33,19 @@ import com.joeracosta.myreviews.data.MapData
 import com.joeracosta.myreviews.data.Place
 import com.joeracosta.myreviews.data.Review
 import com.joeracosta.myreviews.ui.theme.Amber
+import com.joeracosta.myreviews.ui.theme.BrightRed
+import com.joeracosta.myreviews.ui.theme.DeepRed
 import com.joeracosta.myreviews.ui.theme.ForestGreen
+import com.joeracosta.myreviews.ui.theme.Gold
+import com.joeracosta.myreviews.ui.theme.GoogleMapsBlue
+import com.joeracosta.myreviews.ui.theme.MyReviewsTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaceSheet(
     place: Place,
     onEditClicked: () -> Unit,
+    onJumpToGoogleMapsClicked: () -> Unit,
     onDismissed: () -> Unit
 ) {
     ModalBottomSheet(
@@ -40,19 +53,36 @@ fun PlaceSheet(
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .wrapContentHeight()
             ) {
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = place.name,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Start
-                )
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        maxLines = 3,
+                        text = place.name,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Start
+                    )
+                    if (place.isFavorite) {
+                        Text(
+                            maxLines = 1,
+                            text = stringResource(R.string.favorite_label),
+                            color = BrightRed,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Start
+                        )
+                    }
+                }
+
 
                 Button(
                     onClick = onEditClicked,
@@ -66,6 +96,41 @@ fun PlaceSheet(
                     Text(text = editText)
                 }
             }
+
+
+            Spacer(Modifier.height(12.dp))
+
+            if (place.review != null) {
+                Text(
+                    maxLines = 1,
+                    text = stringResource(R.string.rating_out_of_10, place.review.score),
+                    color = Gold,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Start
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = place.review.text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Start
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Button(
+                onClick = onJumpToGoogleMapsClicked,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = GoogleMapsBlue
+                )
+            ) {
+                val editText = stringResource(R.string.jump_to_google_maps)
+                Text(text = editText)
+            }
+
+
         }
     }
 }
@@ -77,8 +142,8 @@ fun SheetPreview() {
         id = "1",
         name = "Park West Tavern",
         review = Review(
-            "This is review text",
-            8.4F
+            "This is a review for park west tavern\n\nhere are more words",
+            8.4333F
         ),
         isFavorite = false,
         mapData = MapData(
@@ -86,12 +151,14 @@ fun SheetPreview() {
             -74.118161
         )
     )
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Amber)
-    ) {
+    MyReviewsTheme {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Amber)
+        ) {
 
-        PlaceSheet(testPlace, {}) { }
+            PlaceSheet(testPlace, {}, {}) { }
+        }
     }
 }

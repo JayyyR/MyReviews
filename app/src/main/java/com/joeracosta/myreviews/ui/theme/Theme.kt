@@ -16,6 +16,13 @@ private val LightColorScheme = lightColorScheme(
     tertiary = ForestGreen
 )
 
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Amber,
+    secondary = ForestBrown,
+    tertiary = ForestGreen
+)
+
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
     surface = Color(0xFFFFFBFE),
@@ -29,7 +36,6 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun MyReviewsTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
@@ -37,9 +43,9 @@ fun MyReviewsTheme(
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            dynamicDarkColorScheme(context)
         }
-        else -> LightColorScheme
+        else -> DarkColorScheme
     }
 
     MaterialTheme(
