@@ -7,6 +7,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -19,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -43,6 +46,7 @@ import com.joeracosta.myreviews.logic.MapViewModel
 import com.joeracosta.myreviews.ui.theme.Amber
 import com.joeracosta.myreviews.ui.theme.MyReviewsTheme
 import com.joeracosta.myreviews.ui.view.MapMarker
+import com.joeracosta.myreviews.ui.view.PlaceSheet
 import kotlinx.coroutines.launch
 
 class MapActivity : ComponentActivity() {
@@ -76,11 +80,15 @@ class MapActivity : ComponentActivity() {
             MyReviewsTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
-
+                    val layoutDirection = LocalLayoutDirection.current
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .padding(innerPadding)
+                            .padding(
+                                start = innerPadding.calculateStartPadding(layoutDirection),
+                                end = innerPadding.calculateEndPadding(layoutDirection),
+                                bottom = innerPadding.calculateBottomPadding()
+                            )
                     ) {
 
 
@@ -121,35 +129,6 @@ class MapActivity : ComponentActivity() {
                             }
                         }
 
-                        val testPlace = Place(
-                            id = "1",
-                            name = "Park West Tavern",
-                            review = Review(
-                                "This is review text",
-                                8.4F
-                            ),
-                            isFavorite = false,
-                            mapData = MapData(
-                                40.980407,
-                                -74.118161
-                            )
-                        )
-
-                        val testPlace2 = Place(
-                            id = "2",
-                            name = "Daily Treat",
-                            review = Review(
-                                "This is review text",
-                                9F
-                            ),
-                            isFavorite = true,
-                            mapData = MapData(
-                                40.9792684,
-                                -74.1158964
-                            )
-                        )
-
-                        val listOfPlacesTest = listOf(testPlace, testPlace2)
 
                         GoogleMap(
                             cameraPositionState = cameraPositionState,
@@ -162,12 +141,12 @@ class MapActivity : ComponentActivity() {
                                     baseContext,
                                     R.raw.empty_map_style
                                 ),
-                                isMyLocationEnabled = true
+                                isMyLocationEnabled = false
                             )
                         ) {
-                            listOfPlacesTest.forEach {
+                            mapState.value.reviewedPlaces.forEach {
                                 MapMarker(it) {
-                                    //on click
+                                    mapViewModel.placeClicked(it)
                                 }
                             }
 
@@ -191,7 +170,17 @@ class MapActivity : ComponentActivity() {
                             )
                         }
 
-
+                        val currentlyOpenedPlace = mapState.value.openedPlace
+                        if (currentlyOpenedPlace != null) {
+                            PlaceSheet(
+                                place = currentlyOpenedPlace,
+                                onEditClicked = {
+                                    //todo
+                                }
+                            ) {
+                                mapViewModel.placeClosed()
+                            }
+                        }
                     }
                 }
             }

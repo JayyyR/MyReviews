@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">MyReviews</string>
+    <string name="edit_button">EDIT</string>
 </resources>

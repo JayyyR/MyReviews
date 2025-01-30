@@ -21,6 +21,7 @@ data class MapData (
 data class MapState(
     val currentLocation: MapData?,
     val positionToJumpTo: MapData?,
-    val reviewedPlaces: List<Place>
+    val reviewedPlaces: List<Place>,
+    val openedPlace: Place?
 )
 

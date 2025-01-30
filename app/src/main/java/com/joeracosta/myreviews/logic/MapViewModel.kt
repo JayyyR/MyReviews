@@ -3,6 +3,8 @@ package com.joeracosta.myreviews.logic
 import androidx.lifecycle.ViewModel
 import com.joeracosta.myreviews.data.MapData
 import com.joeracosta.myreviews.data.MapState
+import com.joeracosta.myreviews.data.Place
+import com.joeracosta.myreviews.data.Review
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -12,9 +14,48 @@ class MapViewModel : ViewModel() {
         MapState(
             currentLocation = null,
             positionToJumpTo = null, //todo better defaults
-            reviewedPlaces = emptyList()
+            reviewedPlaces = emptyList(),
+            openedPlace = null
         )
     )
+
+    init {
+        //todo testing
+        val testPlace = Place(
+            id = "1",
+            name = "Park West Tavern",
+            review = Review(
+                "This is review text",
+                8.4F
+            ),
+            isFavorite = false,
+            mapData = MapData(
+                40.980407,
+                -74.118161
+            )
+        )
+
+        val testPlace2 = Place(
+            id = "2",
+            name = "Daily Treat",
+            review = Review(
+                "This is review text",
+                9F
+            ),
+            isFavorite = true,
+            mapData = MapData(
+                40.9792684,
+                -74.1158964
+            )
+        )
+
+        val listOfPlacesTest = listOf(testPlace, testPlace2)
+        updateMapState(
+            _state.value.copy(
+                reviewedPlaces = listOfPlacesTest
+            )
+        )
+    }
 
     val state: StateFlow<MapState> = _state
 
@@ -23,6 +64,22 @@ class MapViewModel : ViewModel() {
             _state.value.copy(
                 currentLocation = currentLocation,
                 positionToJumpTo = if (moveMap) currentLocation else _state.value.positionToJumpTo
+            )
+        )
+    }
+
+    fun placeClicked(place: Place) {
+        updateMapState(
+            _state.value.copy(
+                openedPlace = place
+            )
+        )
+    }
+
+    fun placeClosed() {
+        updateMapState(
+            _state.value.copy(
+                openedPlace = null
             )
         )
     }
