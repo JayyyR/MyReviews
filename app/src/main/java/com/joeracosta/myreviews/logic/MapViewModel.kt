@@ -1,12 +1,17 @@
 package com.joeracosta.myreviews.logic
 
 import androidx.lifecycle.ViewModel
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.CircularBounds
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.joeracosta.myreviews.data.MapData
 import com.joeracosta.myreviews.data.MapState
 import com.joeracosta.myreviews.data.Place
 import com.joeracosta.myreviews.data.Review
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+
 
 class MapViewModel : ViewModel() {
 
@@ -55,6 +60,7 @@ class MapViewModel : ViewModel() {
                 reviewedPlaces = listOfPlacesTest
             )
         )
+
     }
 
     val state: StateFlow<MapState> = _state
@@ -91,6 +97,7 @@ class MapViewModel : ViewModel() {
             )
         )
     }
+
 
     private fun updateMapState(newState: MapState) {
         _state.value = newState

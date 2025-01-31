@@ -15,7 +15,8 @@ data class Review (
 
 data class MapData (
     val lat: Double,
-    val lng: Double
+    val lng: Double,
+    //val address: String //todo
 )
 
 data class MapState(

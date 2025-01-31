@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.compose.maps)
     implementation(libs.play.services.location)
+    implementation(libs.google.places)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
