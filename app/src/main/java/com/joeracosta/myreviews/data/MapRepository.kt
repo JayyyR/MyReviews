@@ -24,7 +24,7 @@ class MapRepositoryImpl(private val placesClient: PlacesClient) : MapRepository 
             com.google.android.libraries.places.api.model.Place.Field.FORMATTED_ADDRESS,
             com.google.android.libraries.places.api.model.Place.Field.LOCATION
         )
-        val circle = CircularBounds.newInstance(currentMapViewCenter, 500.0)
+        val circle = CircularBounds.newInstance(currentMapViewCenter, 5000.0)
 
         val searchByTextRequest = SearchByTextRequest.builder(searchQuery, placeFields)
             .setMaxResultCount(10)

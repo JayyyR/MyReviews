@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -58,6 +59,7 @@ import com.joeracosta.myreviews.ui.theme.MyReviewsTheme
 import com.joeracosta.myreviews.ui.view.MapMarker
 import com.joeracosta.myreviews.ui.view.PlaceSheet
 import kotlinx.coroutines.launch
+import kotlin.math.exp
 
 
 class MapActivity : ComponentActivity() {
@@ -114,10 +116,13 @@ class MapActivity : ComponentActivity() {
                                         mapViewModel.updateSearchQuery(it)
                                     },
                                     onSearch = {
-
+                                        mapViewModel.doPlaceSearch()
                                     },
                                     expanded = expanded,
-                                    onExpandedChange = { expanded = it },
+                                    onExpandedChange = {
+                                        expanded = it
+                                        mapViewModel.clearSearch()
+                                    },
                                     placeholder = { Text("Search") },
                                     leadingIcon = {
                                         Icon(
@@ -136,13 +141,23 @@ class MapActivity : ComponentActivity() {
                                 )
                             },
                             expanded = expanded,
-                            onExpandedChange = { expanded = it },
+                            onExpandedChange = {
+                                expanded = it
+                                mapViewModel.clearSearch()
+                            },
                         ) {
                             LazyColumn {
                                 val placeSearchResults = mapState.value.placeSearchResults
                                 placeSearchResults?.let {
-                                    items(it) {
-                                        Text(it.name)
+                                    items(it) { place ->
+                                        Text(
+                                            modifier = Modifier.clickable {
+                                                mapViewModel.placeClicked(place)
+                                                expanded = false
+                                                mapViewModel.clearSearch()
+                                            },
+                                            text = place.name
+                                        )
                                     }
                                 }
                             }
@@ -201,7 +216,9 @@ class MapActivity : ComponentActivity() {
 
                         LaunchedEffect(cameraPositionState.isMoving) {
                             if (!cameraPositionState.isMoving) {
-                                cameraPositionState.projection?.visibleRegion?.latLngBounds?.center?.let(mapViewModel::updateCurrentMapCenter)
+                                cameraPositionState.projection?.visibleRegion?.latLngBounds?.center?.let(
+                                    mapViewModel::updateCurrentMapCenter
+                                )
                             }
                         }
 
@@ -212,7 +229,9 @@ class MapActivity : ComponentActivity() {
                                 myLocationButtonEnabled = false
                             ),
                             onMapLoaded = {
-                                cameraPositionState.projection?.visibleRegion?.latLngBounds?.center?.let(mapViewModel::updateCurrentMapCenter)
+                                cameraPositionState.projection?.visibleRegion?.latLngBounds?.center?.let(
+                                    mapViewModel::updateCurrentMapCenter
+                                )
                             },
                             properties = MapProperties(
                                 mapStyleOptions = MapStyleOptions.loadRawResourceStyle(
@@ -307,7 +326,7 @@ class MapActivity : ComponentActivity() {
             if (latestLocation != null) {
                 mapViewModel.updateCurrentLocation(
                     latestLocation,
-                    true
+                    mapViewModel.state.value.currentLocation == null
                 )
             }
         }

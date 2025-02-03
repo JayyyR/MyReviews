@@ -94,7 +94,7 @@ class MapViewModel(
         }
     }
 
-    private fun doPlaceSearch() {
+    fun doPlaceSearch() {
         viewModelScope.launch {
             val result = mapRepository.searchPlace(state.value.searchQuery.orEmpty(), state.value.currentMapCenter)
             if (result is MyResult.Success) {
@@ -130,7 +130,8 @@ class MapViewModel(
     fun placeClicked(place: MyPlace) {
         updateMapState(
             _state.value.copy(
-                openedPlace = place
+                openedPlace = place,
+                positionToJumpTo = place.mapData.latLng
             )
         )
     }
@@ -159,6 +160,15 @@ class MapViewModel(
             )
         )
         startPlaceSearchJob()
+    }
+
+    fun clearSearch() {
+        updateMapState(
+            _state.value.copy(
+                searchQuery = null,
+                placeSearchResults = null
+            )
+        )
     }
 
 
