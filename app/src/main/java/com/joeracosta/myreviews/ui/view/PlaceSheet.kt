@@ -3,10 +3,8 @@ package com.joeracosta.myreviews.ui.view
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,13 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.android.gms.maps.model.LatLng
 import com.joeracosta.myreviews.R
 import com.joeracosta.myreviews.data.MapData
-import com.joeracosta.myreviews.data.Place
+import com.joeracosta.myreviews.data.MyPlace
 import com.joeracosta.myreviews.data.Review
 import com.joeracosta.myreviews.ui.theme.Amber
 import com.joeracosta.myreviews.ui.theme.BrightRed
-import com.joeracosta.myreviews.ui.theme.DeepRed
 import com.joeracosta.myreviews.ui.theme.ForestGreen
 import com.joeracosta.myreviews.ui.theme.Gold
 import com.joeracosta.myreviews.ui.theme.GoogleMapsBlue
@@ -43,7 +41,7 @@ import com.joeracosta.myreviews.ui.theme.MyReviewsTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaceSheet(
-    place: Place,
+    place: MyPlace,
     onEditClicked: () -> Unit,
     onJumpToGoogleMapsClicked: () -> Unit,
     onDismissed: () -> Unit
@@ -138,17 +136,20 @@ fun PlaceSheet(
 @Preview
 @Composable
 fun SheetPreview() {
-    val testPlace = Place(
+    val testPlace = MyPlace(
         id = "1",
         name = "Park West Tavern",
         review = Review(
-            "This is a review for park west tavern\n\nhere are more words",
-            8.4333F
+            "This is review text for park west tavern. Their Guinness is not consistent",
+            8.4F
         ),
         isFavorite = false,
         mapData = MapData(
-            40.980407,
-            -74.118161
+            LatLng(
+                40.980407,
+                -74.118161
+            ),
+            "pwt address"
         )
     )
     MyReviewsTheme {

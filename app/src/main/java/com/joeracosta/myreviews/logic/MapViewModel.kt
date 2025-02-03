@@ -2,12 +2,9 @@ package com.joeracosta.myreviews.logic
 
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.CircularBounds
-import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.joeracosta.myreviews.data.MapData
 import com.joeracosta.myreviews.data.MapState
-import com.joeracosta.myreviews.data.Place
+import com.joeracosta.myreviews.data.MyPlace
 import com.joeracosta.myreviews.data.Review
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +23,7 @@ class MapViewModel : ViewModel() {
 
     init {
         //todo testing
-        val testPlace = Place(
+        val testPlace = MyPlace(
             id = "1",
             name = "Park West Tavern",
             review = Review(
@@ -35,12 +32,15 @@ class MapViewModel : ViewModel() {
             ),
             isFavorite = false,
             mapData = MapData(
-                40.980407,
-                -74.118161
+                LatLng(
+                    40.980407,
+                    -74.118161
+                ),
+                "pwt address"
             )
         )
 
-        val testPlace2 = Place(
+        val testPlace2 = MyPlace(
             id = "2",
             name = "Daily Treat",
             review = Review(
@@ -49,8 +49,11 @@ class MapViewModel : ViewModel() {
             ),
             isFavorite = true,
             mapData = MapData(
-                40.9792684,
-                -74.1158964
+                LatLng(
+                    40.9792684,
+                    -74.1158964,
+                ),
+                "dt address"
             )
         )
 
@@ -65,7 +68,7 @@ class MapViewModel : ViewModel() {
 
     val state: StateFlow<MapState> = _state
 
-    fun updateCurrentLocation(currentLocation: MapData, moveMap: Boolean) {
+    fun updateCurrentLocation(currentLocation: LatLng, moveMap: Boolean) {
         updateMapState(
             _state.value.copy(
                 currentLocation = currentLocation,
@@ -74,7 +77,7 @@ class MapViewModel : ViewModel() {
         )
     }
 
-    fun placeClicked(place: Place) {
+    fun placeClicked(place: MyPlace) {
         updateMapState(
             _state.value.copy(
                 openedPlace = place

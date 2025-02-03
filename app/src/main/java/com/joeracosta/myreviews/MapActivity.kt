@@ -11,13 +11,23 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,8 +44,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.CircularBounds
-import com.google.android.libraries.places.api.model.RectangularBounds
-import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.SearchByTextRequest
 import com.google.android.libraries.places.api.net.SearchByTextResponse
 import com.google.maps.android.compose.GoogleMap
@@ -44,7 +52,6 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.joeracosta.myreviews.data.Constants
 import com.joeracosta.myreviews.data.MapData
-import com.joeracosta.myreviews.data.Place
 import com.joeracosta.myreviews.logic.LastLocationGetter
 import com.joeracosta.myreviews.logic.LastLocationProviderActivityImpl
 import com.joeracosta.myreviews.logic.MapViewModel
@@ -53,6 +60,7 @@ import com.joeracosta.myreviews.ui.theme.MyReviewsTheme
 import com.joeracosta.myreviews.ui.view.MapMarker
 import com.joeracosta.myreviews.ui.view.PlaceSheet
 import kotlinx.coroutines.launch
+import kotlin.math.exp
 
 
 class MapActivity : ComponentActivity() {
@@ -73,6 +81,7 @@ class MapActivity : ComponentActivity() {
 
     private lateinit var mapViewModel: MapViewModel
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -83,8 +92,32 @@ class MapActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val mapState = mapViewModel.state.collectAsState()
+
+            var expanded by rememberSaveable { mutableStateOf(false) }
+
             MyReviewsTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar =  {
+                        SearchBar(
+                            inputField = {
+                                SearchBarDefaults.InputField(
+                                    query = "",
+                                    onQueryChange = {},
+                                    onSearch = { },
+                                    expanded = expanded,
+                                    onExpandedChange = { expanded = it },
+                                    placeholder = { Text("Search") },
+                                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                                    trailingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null) },
+                                )
+                            },
+                            expanded = expanded,
+                            onExpandedChange = { expanded = it },
+                        ) {
+
+                        }
+                    }) { innerPadding ->
 
                     val layoutDirection = LocalLayoutDirection.current
                     Box(
@@ -99,14 +132,14 @@ class MapActivity : ComponentActivity() {
 
 
                         val positionToJumpTo = mapState.value.positionToJumpTo
-                        val defaultMap = MapData(1.35, 103.87)
+                        val defaultMap = LatLng(1.35, 103.87)
                         val defaultPosition = positionToJumpTo ?: defaultMap
 
                         val cameraPositionState = rememberCameraPositionState {
                             position = CameraPosition.fromLatLngZoom(
                                 LatLng(
-                                    defaultPosition.lat,
-                                    defaultPosition.lng
+                                    defaultPosition.latitude,
+                                    defaultPosition.longitude
                                 ), Constants.DEFAULT_ZOOM_LEVEL
                             )
                         }
@@ -118,8 +151,8 @@ class MapActivity : ComponentActivity() {
                                 cameraPositionState.animate(
                                     update = CameraUpdateFactory.newLatLngZoom(
                                         LatLng(
-                                            positionToJumpTo.lat,
-                                            positionToJumpTo.lng
+                                            positionToJumpTo.latitude,
+                                            positionToJumpTo.longitude
                                         ),
                                         Constants.DEFAULT_ZOOM_LEVEL
                                     ),
@@ -127,7 +160,7 @@ class MapActivity : ComponentActivity() {
                                 )
                                 /*cameraPositionState.position = CameraPosition.fromLatLngZoom(
                                     LatLng(
-                                        positionToJumpTo.lat,
+                                        positionToJumpTo.latLng.latitude,
                                         positionToJumpTo.lng
                                     ), 14f
                                 )*/
@@ -156,17 +189,6 @@ class MapActivity : ComponentActivity() {
                                 }
                             }
                         }
-
-                        //todo search box
-                        Button(
-                            onClick = { testPlaceSearch() },
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .padding(16.dp)
-                        ) {
-                            Text("Test Place Search")
-                        }
-
 
                         // Locate Me Button
                         FloatingActionButton(
@@ -295,7 +317,7 @@ class MapActivity : ComponentActivity() {
             val latestLocation = lastLocationGetter?.getLastLocation()
             if (latestLocation != null) {
                 mapViewModel.updateCurrentLocation(
-                    MapData(latestLocation.lat, latestLocation.lng),
+                    latestLocation,
                     true
                 )
             }

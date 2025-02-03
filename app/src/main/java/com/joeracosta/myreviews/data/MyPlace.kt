@@ -1,6 +1,8 @@
 package com.joeracosta.myreviews.data
 
-data class Place (
+import com.google.android.gms.maps.model.LatLng
+
+data class MyPlace (
     val id: String,
     val name: String,
     val review: Review?,
@@ -14,15 +16,15 @@ data class Review (
 )
 
 data class MapData (
-    val lat: Double,
-    val lng: Double,
-    //val address: String //todo
+    val latLng: LatLng,
+    val address: String
 )
 
 data class MapState(
-    val currentLocation: MapData?,
-    val positionToJumpTo: MapData?,
-    val reviewedPlaces: List<Place>,
-    val openedPlace: Place?
+    val currentLocation: LatLng?,
+    val positionToJumpTo: LatLng?,
+    val reviewedPlaces: List<MyPlace>,
+    val openedPlace: MyPlace?,
+
 )
 
