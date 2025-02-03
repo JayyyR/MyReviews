@@ -1,25 +1,43 @@
 package com.joeracosta.myreviews.logic
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.google.android.gms.maps.model.LatLng
 import com.joeracosta.myreviews.data.MapData
+import com.joeracosta.myreviews.data.MapRepository
 import com.joeracosta.myreviews.data.MapState
 import com.joeracosta.myreviews.data.MyPlace
+import com.joeracosta.myreviews.data.MyResult
 import com.joeracosta.myreviews.data.Review
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 
-class MapViewModel : ViewModel() {
+class MapViewModel(
+    private val mapRepository: MapRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(
         MapState(
             currentLocation = null,
             positionToJumpTo = null, //todo better defaults
             reviewedPlaces = emptyList(),
-            openedPlace = null
+            openedPlace = null,
+            searchQuery = null,
+            currentMapCenter = LatLng(1.35, 103.87), //todo better defaults
+            placeSearchResults = null
         )
     )
+
+    private var placeSearchJob: Job? = null
 
     init {
         //todo testing
@@ -68,11 +86,43 @@ class MapViewModel : ViewModel() {
 
     val state: StateFlow<MapState> = _state
 
+    private fun startPlaceSearchJob() {
+        placeSearchJob?.cancel()
+        placeSearchJob = viewModelScope.launch {
+            delay(500)
+            doPlaceSearch()
+        }
+    }
+
+    private fun doPlaceSearch() {
+        viewModelScope.launch {
+            val result = mapRepository.searchPlace(state.value.searchQuery.orEmpty(), state.value.currentMapCenter)
+            if (result is MyResult.Success) {
+                updateMapState(
+                    _state.value.copy(
+                        placeSearchResults = result.value
+                    )
+                )
+            } else {
+                //todo error
+            }
+            placeSearchJob = null
+        }
+    }
+
     fun updateCurrentLocation(currentLocation: LatLng, moveMap: Boolean) {
         updateMapState(
             _state.value.copy(
                 currentLocation = currentLocation,
                 positionToJumpTo = if (moveMap) currentLocation else _state.value.positionToJumpTo
+            )
+        )
+    }
+
+    fun updateCurrentMapCenter(currentMapCenter: LatLng) {
+        updateMapState(
+            _state.value.copy(
+                currentMapCenter = currentMapCenter
             )
         )
     }
@@ -102,7 +152,27 @@ class MapViewModel : ViewModel() {
     }
 
 
+    fun updateSearchQuery(searchQuery: String) {
+        updateMapState(
+            _state.value.copy(
+                searchQuery = searchQuery
+            )
+        )
+        startPlaceSearchJob()
+    }
+
+
     private fun updateMapState(newState: MapState) {
         _state.value = newState
     }
+
+    // Define ViewModel factory in a companion object
+    companion object {
+        class Factory(private val mapRepository: MapRepository): ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return MapViewModel(mapRepository) as T
+            }
+        }
+    }
+
 }

@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,24 +45,19 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.CircularBounds
-import com.google.android.libraries.places.api.net.SearchByTextRequest
-import com.google.android.libraries.places.api.net.SearchByTextResponse
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.joeracosta.myreviews.data.Constants
-import com.joeracosta.myreviews.data.MapData
+import com.joeracosta.myreviews.data.MapRepositoryImpl
 import com.joeracosta.myreviews.logic.LastLocationGetter
 import com.joeracosta.myreviews.logic.LastLocationProviderActivityImpl
 import com.joeracosta.myreviews.logic.MapViewModel
-import com.joeracosta.myreviews.ui.theme.Amber
 import com.joeracosta.myreviews.ui.theme.MyReviewsTheme
 import com.joeracosta.myreviews.ui.view.MapMarker
 import com.joeracosta.myreviews.ui.view.PlaceSheet
 import kotlinx.coroutines.launch
-import kotlin.math.exp
 
 
 class MapActivity : ComponentActivity() {
@@ -85,7 +82,15 @@ class MapActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        mapViewModel = ViewModelProvider(this)[MapViewModel::class.java]
+        mapViewModel =
+            ViewModelProvider(
+                this,
+                MapViewModel.Companion.Factory(
+                    MapRepositoryImpl(
+                        Places.createClient(applicationContext)
+                    )
+                )
+            )[MapViewModel::class.java]
 
         handleLocation()
 
@@ -98,24 +103,49 @@ class MapActivity : ComponentActivity() {
             MyReviewsTheme {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    topBar =  {
+                    topBar = {
+                        val padding = 0.dp //else 16.dp
                         SearchBar(
+                            modifier = Modifier.padding(start = padding, end = padding),
                             inputField = {
                                 SearchBarDefaults.InputField(
-                                    query = "",
-                                    onQueryChange = {},
-                                    onSearch = { },
+                                    query = mapState.value.searchQuery.orEmpty(),
+                                    onQueryChange = {
+                                        mapViewModel.updateSearchQuery(it)
+                                    },
+                                    onSearch = {
+
+                                    },
                                     expanded = expanded,
                                     onExpandedChange = { expanded = it },
                                     placeholder = { Text("Search") },
-                                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                                    trailingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null) },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Search,
+                                            contentDescription = null
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        if (!expanded) {
+                                            Icon(
+                                                Icons.Default.Menu,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    },
                                 )
                             },
                             expanded = expanded,
                             onExpandedChange = { expanded = it },
                         ) {
-
+                            LazyColumn {
+                                val placeSearchResults = mapState.value.placeSearchResults
+                                placeSearchResults?.let {
+                                    items(it) {
+                                        Text(it.name)
+                                    }
+                                }
+                            }
                         }
                     }) { innerPadding ->
 
@@ -132,7 +162,7 @@ class MapActivity : ComponentActivity() {
 
 
                         val positionToJumpTo = mapState.value.positionToJumpTo
-                        val defaultMap = LatLng(1.35, 103.87)
+                        val defaultMap = mapState.value.currentMapCenter
                         val defaultPosition = positionToJumpTo ?: defaultMap
 
                         val cameraPositionState = rememberCameraPositionState {
@@ -169,12 +199,21 @@ class MapActivity : ComponentActivity() {
                         }
 
 
+                        LaunchedEffect(cameraPositionState.isMoving) {
+                            if (!cameraPositionState.isMoving) {
+                                cameraPositionState.projection?.visibleRegion?.latLngBounds?.center?.let(mapViewModel::updateCurrentMapCenter)
+                            }
+                        }
+
                         GoogleMap(
                             cameraPositionState = cameraPositionState,
                             uiSettings = MapUiSettings(
                                 zoomControlsEnabled = false,
                                 myLocationButtonEnabled = false
                             ),
+                            onMapLoaded = {
+                                cameraPositionState.projection?.visibleRegion?.latLngBounds?.center?.let(mapViewModel::updateCurrentMapCenter)
+                            },
                             properties = MapProperties(
                                 mapStyleOptions = MapStyleOptions.loadRawResourceStyle(
                                     baseContext,
@@ -198,12 +237,12 @@ class MapActivity : ComponentActivity() {
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .padding(16.dp),
-                            containerColor = Amber
+                            containerColor = Color.DarkGray
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.gps_icon),
                                 contentDescription = "Locate Me",
-                                tint = Color.Black
+                                tint = Color.White
                             )
                         }
 
@@ -226,56 +265,6 @@ class MapActivity : ComponentActivity() {
             }
         }
     }
-
-
-    private fun testPlaceSearch() {
-        val placesClient = Places.createClient(this)
-
-
-        /*
-        //autocomplete search
-        val center = LatLng(40.9792684, -74.1158964) //todo map bounds
-        val circle = CircularBounds.newInstance(center, 5000.0)
-        val autoCompletePlacesRequest = FindAutocompletePredictionsRequest.builder()
-            .setQuery("pizza")
-            .setRegionCode("US")
-            .setLocationRestriction(circle)
-            .build()
-        placesClient.findAutocompletePredictions(autoCompletePlacesRequest)
-            .addOnSuccessListener { response ->
-                println()
-            }
-            .addOnFailureListener {
-                println()
-            }
-
-        */
-        //todo text search seems to work better than autocomplete
-        val placeFields = listOf(
-            com.google.android.libraries.places.api.model.Place.Field.ID,
-            com.google.android.libraries.places.api.model.Place.Field.DISPLAY_NAME,
-            com.google.android.libraries.places.api.model.Place.Field.FORMATTED_ADDRESS)
-
-
-        val center = LatLng(40.9792684, -74.1158964) //todo map bounds
-        val circle = CircularBounds.newInstance(center, 5000.0)
-
-        val  searchByTextRequest = SearchByTextRequest.builder("pizza", placeFields)
-            .setMaxResultCount(10)
-            .setLocationBias(circle).build();
-
-
-        placesClient.searchByText(searchByTextRequest)
-            .addOnSuccessListener { response: SearchByTextResponse ->
-                val places = response.places
-                println()
-            }
-            .addOnFailureListener {  e ->
-                println()
-
-            }
-    }
-
 
     private fun handleLocation() {
 

@@ -25,6 +25,12 @@ data class MapState(
     val positionToJumpTo: LatLng?,
     val reviewedPlaces: List<MyPlace>,
     val openedPlace: MyPlace?,
-
+    val searchQuery: String?,
+    val currentMapCenter: LatLng,
+    val placeSearchResults: List<MyPlace>?
 )
 
+sealed class MyResult<out T> {
+    data class Success<out T>(val value: T): MyResult<T>()
+    data class Error(val errorMessage: String): MyResult<Nothing>()
+}
